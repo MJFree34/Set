@@ -8,26 +8,11 @@
 import SwiftUI
 
 struct CardView: View {
-    @Environment(\.colorScheme) var colorScheme
-    
     let card: StandardSetGame.Card
     
     var body: some View {
-        let cardBack = RoundedRectangle(cornerRadius: 10)
-        
-        ZStack {
-            if card.isMatched {
-                cardBack
-                    .opacity(0)
-            } else if card.isFaceUp {
-                cardBack
-                    .strokeBorder(cardBorderColor, lineWidth: 3)
-                
-                shapes
-            } else {
-                cardBack.strokeBorder(lineWidth: 4)
-            }
-        }
+        shapes
+            .cardify(card: card)
     }
     
     @ViewBuilder
@@ -78,20 +63,6 @@ struct CardView: View {
         .foregroundColor(card.shapeColor.color)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
-    }
-    
-    private var cardBorderColor: Color {
-        if card.willBeInSet == true {
-            return .green
-        } else if card.willBeInSet == false {
-            return .red
-        } else if card.isSelected {
-            return .orange
-        } else if card.isInMatch {
-            return .yellow
-        } else {
-            return colorScheme == .dark ? .white : .black
-        }
     }
 }
 

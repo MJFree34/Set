@@ -200,7 +200,7 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
     }
     
     private mutating func setIsFaceUp() {
-        cards.filter({ !$0.isMatched })[0..<numberOfDealtCards].indices.forEach { cards[$0].isFaceUp = true }
+        cards.filter({ !$0.isMatched })[0..<numberOfDealtCards].forEach { dealtCard in cards[cards.firstIndex(where: { $0.id == dealtCard.id })!].isFaceUp = true }
     }
     
     struct Card: Identifiable {
