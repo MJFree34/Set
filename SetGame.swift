@@ -19,8 +19,7 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
     
     private var numberOfDealtCards = 12 {
         didSet {
-            print("DealableCards: \(cards.filter({ !$0.isMatched }).count)")
-            print("NumberOfDealtCards: \(numberOfDealtCards)")
+            setIsFaceUp()
         }
     }
     private var lastSetTappedTime: Date?
@@ -200,11 +199,16 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
         }
     }
     
+    private mutating func setIsFaceUp() {
+        cards.filter({ !$0.isMatched })[0..<numberOfDealtCards].indices.forEach { cards[$0].isFaceUp = true }
+    }
+    
     struct Card: Identifiable {
         let id = UUID()
         var isMatched = false
         var isSelected = false
         var isInMatch = false
+        var isFaceUp = false
         var willBeInSet: Bool? = nil
         let numberOfShapes: Int
         let shapeColor: ShapeColor

@@ -19,11 +19,13 @@ struct CardView: View {
             if card.isMatched {
                 cardBack
                     .opacity(0)
-            } else {
+            } else if card.isFaceUp {
                 cardBack
                     .strokeBorder(cardBorderColor, lineWidth: 3)
                 
                 shapes
+            } else {
+                cardBack.strokeBorder(lineWidth: 4)
             }
         }
     }
