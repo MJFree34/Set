@@ -25,7 +25,7 @@ struct Cardify: ViewModifier, Animatable {
     
     func body(content: Content) -> some View {
         ZStack {
-            let shape = RoundedRectangle(cornerRadius: DrawingConstants.cornerRadius)
+            let shape = RoundedRectangle(cornerRadius: Constants.cornerRadius)
             
             if rotation < 90 {
                 shape
@@ -33,7 +33,7 @@ struct Cardify: ViewModifier, Animatable {
                     .foregroundColor(colorScheme == .light ? .white : .black)
                 
                 shape
-                    .strokeBorder(cardBorderColor, lineWidth: DrawingConstants.lineWidth)
+                    .strokeBorder(cardBorderColor, lineWidth: Constants.lineWidth)
             } else {
                 shape
                     .fill()
@@ -60,7 +60,7 @@ struct Cardify: ViewModifier, Animatable {
         }
     }
     
-    enum DrawingConstants {
+    private enum Constants {
         static let lineWidth = 4.0
         static let cornerRadius = 10.0
     }

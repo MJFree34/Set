@@ -20,6 +20,10 @@ class StandardSetGame: ObservableObject {
         model.dealtCards
     }
     
+    var cards: [Card] {
+        model.cards
+    }
+    
     var score: Int {
         model.score
     }
