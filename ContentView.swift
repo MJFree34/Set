@@ -13,6 +13,7 @@ struct ContentView: View {
     @Namespace private var dealingNamespace
     
     @State private var dealt = Set<UUID>()
+    @State private var matched = Set<UUID>()
     
     var body: some View {
         GeometryReader { geometry in
@@ -22,7 +23,7 @@ struct ContentView: View {
                         .font(.headline)
                         .fontWeight(.bold)
                     
-                    gameBody
+                    gameBody.padding(.bottom, Constants.undealtHeight + 10)
                     
                     HStack {
                         Button("New Game") {
@@ -51,7 +52,23 @@ struct ContentView: View {
                     .padding(.horizontal, 2)
                 }
                 
-                deckBody
+                HStack {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .frame(width: Constants.undealtWidth, height: Constants.undealtHeight)
+                            .foregroundColor(.gray)
+                        deckBody
+                    }
+                    Spacer()
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .frame(width: Constants.undealtWidth, height: Constants.undealtHeight)
+                            .foregroundColor(.gray)
+                        discardBody
+                    }
+                }
+                .padding(.bottom, 50)
+                .padding(.horizontal)
             }
             .padding()
         }
@@ -70,6 +87,7 @@ struct ContentView: View {
                     .onTapGesture {
                         withAnimation {
                             game.choose(card)
+                            game.matchedCards.forEach { match($0) }
                         }
                     }
             }
@@ -88,20 +106,56 @@ struct ContentView: View {
         .frame(width: Constants.undealtWidth, height: Constants.undealtHeight)
         .foregroundColor(Constants.color)
         .onTapGesture {
-            for card in game.dealtCards {
-                withAnimation(dealAnimation(for: card)) {
-                    deal(card)
+            if dealt.isEmpty {
+                for card in game.dealtCards {
+                    withAnimation(dealAnimation(for: card)) {
+                        deal(card)
+                    }
+                }
+            } else if !game.allCardsDealt {
+                withAnimation {
+                    game.dealCards()
+                    game.matchedCards.forEach { match($0) }
+                }
+                
+                for card in game.dealtCards {
+                    if !dealt.contains(card.id) {
+                        withAnimation(dealAnimation(for: card)) {
+                            deal(card)
+                        }
+                    }
                 }
             }
         }
+    }
+    
+    var discardBody: some View {
+        ZStack {
+            ForEach(game.cards.filter(isMatched)) { card in
+                CardView(card: card)
+                    .matchedGeometryEffect(id: card.id, in: dealingNamespace)
+                    .transition(.asymmetric(insertion: .opacity, removal: .identity).animation(.easeInOut))
+            }
+        }
+        .frame(width: Constants.undealtWidth, height: Constants.undealtHeight)
+        .foregroundColor(Constants.color)
     }
     
     private func deal(_ card: StandardSetGame.Card) {
         dealt.insert(card.id)
     }
     
+    private func match(_ card: StandardSetGame.Card) {
+        matched.insert(card.id)
+        dealt.remove(card.id)
+    }
+    
     private func isUndealt(_ card: StandardSetGame.Card) -> Bool {
-        !dealt.contains(card.id)
+        !dealt.contains(card.id) && !matched.contains(card.id)
+    }
+    
+    private func isMatched(_ card: StandardSetGame.Card) -> Bool {
+        matched.contains(card.id)
     }
     
     private func zIndex(of card: StandardSetGame.Card) -> Double {
@@ -110,9 +164,11 @@ struct ContentView: View {
     
     private func dealAnimation(for card: StandardSetGame.Card) -> Animation {
         var delay = 0.0
-        if let index = game.dealtCards.firstIndex(where: { $0.id == card.id }) {
-            delay = Double(index) * Constants.totalDealDuration / Double(game.dealtCards.count)
+        
+        if let index = game.cards.firstIndex(where: { $0.id == card.id }) {
+            delay = Double(index - game.startDealIndex) * Constants.totalDealDuration / Double(game.dealtCards.count)
         }
+        
         return .easeInOut(duration: Constants.dealDuration).delay(delay)
     }
     

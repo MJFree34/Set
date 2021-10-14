@@ -11,9 +11,15 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
     var allCardsDealt = false
     var score = 0
     
+    var matchedCards: [Card] {
+        Array(cards.filter({ $0.isMatched }))
+    }
+    
     var dealtCards: [Card] {
         Array(cards.filter({ !$0.isMatched })[0..<numberOfDealtCards])
     }
+    
+    var startDealIndex = 0
     
     private(set) var cards: [Card]
     
@@ -22,7 +28,15 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
             setIsFaceUp()
         }
     }
+    
+    private var numberOfMatchedCards = 0 {
+        didSet {
+            setIsFaceUp()
+        }
+    }
+    
     private var lastSetTappedTime: Date?
+    
     private var isCheating = false {
         didSet {
             if isMatchAvailable && isCheating {
@@ -90,6 +104,8 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
         cards.shuffle()
         
         numberOfDealtCards = 12
+        numberOfMatchedCards = 0
+        startDealIndex = 0
         selectedIndexes = []
         allCardsDealt = false
         score = 0
@@ -105,10 +121,11 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
                 selectedIndexes.forEach { cards[$0].isMatched = true }
                 
                 numberOfDealtCards -= 3
+                numberOfMatchedCards += 3
                 
                 if let selectedIndex = cards.firstIndex(where: { card.id == $0.id }), selectedIndexes.contains(selectedIndex) {
+                    selectedIndexes.forEach { cards[$0].willBeInSet = nil }
                     selectedIndexes.removeAll()
-                    setWillBeInSet(setTime: true)
                     return
                 }
             }
@@ -130,23 +147,26 @@ struct SetGame<ShapeColor, ShapeType, Shading> where ShapeColor: Equatable, Shap
     
     mutating func dealCards() {
         isCheating = false
+        startDealIndex = startDealIndex == 0 ? numberOfDealtCards : startDealIndex
         
         let dealableCardsCount = cards.filter({ !$0.isMatched }).count
         
         if checkAllFeaturesOfSelectedCards() {
             selectedIndexes.forEach { cards[$0].isMatched = true }
             
-            numberOfDealtCards -= 3
+            numberOfMatchedCards += 3
             
             selectedIndexes.forEach { cards[$0].willBeInSet = nil }
             selectedIndexes.removeAll()
-        } else if dealableCardsCount <= numberOfDealtCards + 3 {
+        } else if dealableCardsCount <= numberOfDealtCards + numberOfMatchedCards + 3 {
+            startDealIndex = numberOfDealtCards
             numberOfDealtCards = dealableCardsCount
             allCardsDealt = true
         } else {
             if isMatchAvailable {
                 setScore(match: false)
             }
+            startDealIndex = numberOfDealtCards + numberOfMatchedCards
             numberOfDealtCards += 3
         }
     }

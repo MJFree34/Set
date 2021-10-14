@@ -16,12 +16,20 @@ class StandardSetGame: ObservableObject {
         model.allCardsDealt
     }
     
+    var matchedCards: [Card] {
+        model.matchedCards
+    }
+    
     var dealtCards: [Card] {
         model.dealtCards
     }
     
     var cards: [Card] {
         model.cards
+    }
+    
+    var startDealIndex: Int {
+        model.startDealIndex
     }
     
     var score: Int {
